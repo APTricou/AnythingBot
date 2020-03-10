@@ -8,8 +8,8 @@ module.exports = (word, msg) => {
         .map(entry=>`\`\`\`${entry.word.trim()} - 
                     ${entry.definition.replace(/[\[\]\n]/g,'').trim()}\n
                     ${entry.example.replace(/[\[\]]/g,'').trim()}\n
-                    ${entry.author.trim()}\n`).join("")
-        msg.reply(message)\`\`\``
+                    ${entry.author.trim()}\`\`\``).join("")
+        msg.reply(message)
     })
     .catch(error=>{
         console.error(error)
