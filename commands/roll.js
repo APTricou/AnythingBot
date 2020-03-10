@@ -1,19 +1,21 @@
-module.exports = (msg) => {
+module.exports = (args,msg) => {
     
     // split the individual dice rolls up from the command. accepts command +roll 1d6 4d5
     // runs under premise that dice start at 1 and end at target number
-
-    // splits along spaces 
-    const dice = msg.content.split(" ")
     
     // initializes total
     let total = 0
 
+    if(args.length===0){
+        msg.reply("roll command should follow the format +roll 1d6 or +roll (x)d(y) up to 100d100")
+        return
+    }
+
     //loops over each dice roll
-    for(let i=1;i<dice.length;i++){
+    for(let i=0;i<args.length;i++){
         
         //
-        const nums = dice[i].split("d").map(x=>{
+        const nums = args[i].split("d").map(x=>{
             if(x === '') return 1
             else return parseInt(x)
         })
