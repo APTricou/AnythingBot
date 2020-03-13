@@ -1,7 +1,7 @@
 const roll = require('../commands/roll')
 const localPrefix = require('../commands/prefix')
 const dictionary = require('../commands/dictionary')
-const {join,leave,play,pause,skip,add,clear} = require('../commands/music')
+const {join,leave,play,pause,skip,add,clear,resume, queueCommand} = require('../commands/music')
 let customPrefix = "+"
 
 module.exports = (client,msg) => {
@@ -9,13 +9,9 @@ module.exports = (client,msg) => {
       // sub files with sub functions.
       if(msg.author.bot) return
       if(msg.content.startsWith("@AnythingBot help") || msg.content.startsWith("+help")){
-          msg.reply(`Here are a list of my commands. \n
-          My default Prefix is +, \n
-          ${customPrefix != "+" ? `my custom prefix is ${customPrefix}` : "\n"}
-          +roll - rolls dice (1d6 4d10 etc) \n
-          +prefix - alters prefix \n
-          +dict - Urban Dictionary lookup`)
-      }
+          msg.reply(`Here are a list of my commands.\nMy default Prefix is +,\n${customPrefix != "+" ? `my custom prefix is ${customPrefix}\n` : ""}+roll - rolls dice (1d6 4d10 etc) \n+prefix - alters prefix \n+dict - Urban Dictionary lookup`)
+          return
+        }
       
       if(msg.content.startsWith(customPrefix) || msg.content.startsWith("+")){
         const command = msg.content.split(" ")[0]
@@ -47,17 +43,19 @@ module.exports = (client,msg) => {
             case "leave":
                 return leave(args,msg)
             case "play":
-                return
+                return play(args,msg)
             case "pause":
-                return
+                return pause(msg)
             case "skip":
-                return
+                return skip(msg)
             case "add":
-                //add to queue
-                return
+                return add(args,msg)
             case "clear":
-                // clear queue and stop music
-                return
+                return clear(msg)
+            case "resume":
+                return resume(msg)
+            case "queue":
+                return queueCommand(msg)
             default:
                 msg.channel.send("Command not recognized, refer to +help for a list of commands")
             
