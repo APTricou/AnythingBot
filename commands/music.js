@@ -4,11 +4,7 @@ const ytdl = require('ytdl-core')
 
 // this map contains all of the unique guild queues information
 const queueMap = new Map()
-let voiceChannel = null
 
-/**************
- HELPER FUNCTIONS
- ***************/
 function createQueue(msg, voiceChannel, connection, songs) {
   const queueObject = {
     textChannel: msg.channel,
@@ -18,7 +14,7 @@ function createQueue(msg, voiceChannel, connection, songs) {
     songs: songs,
     volume: 10,
   }
-  queueMap.set(msg.guildId)
+  queueMap.set(msg.guild.id, queueObject)
   return queueObject
 }
 
@@ -40,10 +36,13 @@ async function join(args, msg) {
 }
 
 function leave(args, msg) {
+  console.log(queueMap)
   queue = queueMap.get(msg.guild.id)
-  queue.dispatcher.end()
-  queue.voiceChannel.leave()
-  queueMap.delete(msg.guild.id)
+  if (queue) {
+    queue.dispatcher.end()
+    queue.voiceChannel.leave()
+    queueMap.delete(msg.guild.id)
+  }
 }
 
 async function play(args, msg) {
@@ -69,12 +68,13 @@ async function play(args, msg) {
         connection,
         [song]
       )
-      playSong(guildId, queueObject.songs[0])
+      playSong(msg.guild.id, queueObject.songs[0])
     } else {
       // this bot takes the new song and places it at the beginning of the queue
-      queue.dispatcher.end()
-      queue.songs.unshift(song)
-      playSong(guildId, song)
+      if (queue.dispatcher) {
+        queue.songs.unshift(null, song)
+        queue.dispatcher.end()
+      }
     }
   } catch (error) {
     console.error(error)
@@ -89,17 +89,21 @@ function playSong(guildId, song) {
     queueMap.delete(guildId)
     return
   }
-  const dispatcher = queue.connection
-    .play(ytdl(song.url, { filter: 'audioonly', quality: 'highest' }))
-    .on('end', () => {
-      queue.songs.shift()
-      playSong(guildId, queue.songs[0])
-    })
-    .on('error', error => {
-      console.log(error)
-      queue.textChannel.send('error during playback, skipping song')
-      skip(null, guildId)
-    })
+  console.log(queue.connection)
+  const dispatcher = queue.connection.play(
+    ytdl(song.url, { filter: 'audioonly' })
+  )
+
+  dispatcher.on('end', queue => {
+    queue.songs.shift()
+    playSong(guildId, queue.songs[0])
+  })
+
+  dispatcher.on('error', error => {
+    console.log(error)
+    queue.textChannel.send('error during playback, skipping song')
+    skip(null, guildId)
+  })
   dispatcher.setVolumeLogarithmic(queue.volume / 5)
   queue.dispatcher = dispatcher
 }
@@ -128,20 +132,21 @@ async function add(args, msg) {
   queue.textChannel.send(`added ${song.title} to the queue`)
 }
 
-function skip(msg, guildId = null) {
-  const guildId = guildId || msg.guild.id
+function skip(msg, guildNum = null) {
+  const guildId = guildNum || msg.guild.id
+  console.log(guildId)
   const queue = queueMap.get(guildId)
   if (!queue) return msg.channel.send('no songs in the queue')
   // end current song
   queue.textChannel.send(`Skipping ${queue.songs[0].title}`)
-  queue.connection.dispatcher.end()
+  queue.dispatcher.end()
 }
 
 function clear(msg) {
   const queue = queueMap.get(msg.guild.id)
+  if (!queue) return msg.channel.send('there are no songs in the queue')
   queue.songs = []
   queue.dispatcher.end()
-  queueMap.delete(msg.guild.id)
   msg.channel.send('The queue has been cleared.')
 }
 

@@ -35,7 +35,7 @@ module.exports = (client, msg) => {
       .split(' ')[0]
       .slice(msg.content.startsWith(customPrefix) ? customPrefix.length : 1)
     const args = msg.content.split(' ').slice(1)
-
+    console.log(args)
     switch (command) {
       // prefix change tool
       case 'prefix':
