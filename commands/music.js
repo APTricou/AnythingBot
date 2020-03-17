@@ -1,37 +1,49 @@
 const ytdl = require('ytdl-core')
 
 // This file contains all of the functions for music control.
+
+// this map contains all of the unique guild queues information
 const queueMap = new Map()
 let voiceChannel = null
 
+/**************
+ HELPER FUNCTIONS
+ ***************/
+function createQueue(msg, voiceChannel, connection, songs) {
+  const queueObject = {
+    textChannel: msg.channel,
+    voiceChannel: voiceChannel,
+    connection: connection,
+    dispatcher: null,
+    songs: songs,
+    volume: 10,
+  }
+  queueMap.set(msg.guildId)
+  return queueObject
+}
+
 async function join(args, msg) {
+  // Option to specify which channel to join
   if (args && args.length) {
-    // take args and compare to available voice channels in this guild
     const channel = msg.guild.channels.cache.find(
       vc => vc.name === args[0] && vc.type === 'voice'
     )
-    // if matching - join that channel and return
     if (channel) {
-      voiceChannel = channel
-      await channel.join()
-      return
+      return channel.join()
     }
-    // else do the rest of the function
   }
-  // get user and subsequent channel who asked for join
-  voiceChannel = msg.member.voice.channel
-  // connect to the correct channel
-  if (!voiceChannel) {
+  if (!msg.member.voice.channel) {
     msg.reply('you need to be in a voice channel or specify a channel')
     return
   }
-  return voiceChannel.join()
+  return msg.member.voice.channel.join()
 }
 
 function leave(args, msg) {
-  msg.guild
-  voiceChannel.leave()
-  voiceChannel = null
+  queue = queueMap.get(msg.guild.id)
+  queue.dispatcher.end()
+  queue.voiceChannel.leave()
+  queueMap.delete(msg.guild.id)
 }
 
 async function play(args, msg) {
@@ -51,26 +63,18 @@ async function play(args, msg) {
     const queue = queueMap.get(msg.guild.id)
     if (!queue) {
       // create Queue
-      const queueObject = {
-        textChannel: msg.channel,
-        voiceChannel: voiceChannel,
-        connection: connection,
-        dispatcher: null,
-        songs: [song],
-        volume: 10,
-        playing: true,
-      }
-
-      queueMap.set(msg.guild.id, queueObject)
-
-      playSong(msg.guild.id, queueObject.songs[0])
-      console.error(err)
-      queueMap.delete(msg.guild.id)
-      return msg.channel.send(err)
+      const queueObject = createQueue(
+        msg,
+        msg.member.voice.channel,
+        connection,
+        [song]
+      )
+      playSong(guildId, queueObject.songs[0])
     } else {
+      // this bot takes the new song and places it at the beginning of the queue
       queue.dispatcher.end()
       queue.songs.unshift(song)
-      playSong(msg.guild.id, song)
+      playSong(guildId, song)
     }
   } catch (error) {
     console.error(error)
@@ -79,17 +83,12 @@ async function play(args, msg) {
 }
 
 function playSong(guildId, song) {
-  // song is object with title, url keys
-  // guildId is the key to the queueMap that returns our construct
   const queue = queueMap.get(guildId)
-
   if (!song) {
     queue.voiceChannel.leave()
-    voiceChannel = null
     queueMap.delete(guildId)
     return
   }
-
   const dispatcher = queue.connection
     .play(ytdl(song.url, { filter: 'audioonly', quality: 'highest' }))
     .on('end', () => {
@@ -99,7 +98,7 @@ function playSong(guildId, song) {
     .on('error', error => {
       console.log(error)
       queue.textChannel.send('error during playback, skipping song')
-      skip(msg)
+      skip(null, guildId)
     })
   dispatcher.setVolumeLogarithmic(queue.volume / 5)
   queue.dispatcher = dispatcher
@@ -107,14 +106,14 @@ function playSong(guildId, song) {
 
 function pause(msg) {
   queue = queueMap.get(msg.guild.id)
-  if (!queue) return msg.channel.send('No songs in the queue')
-  queue.dispatcher.pause()
+  if (queue && queue.dispatcher) return queue.dispatcher.pause()
+  else return msg.channel.send('No song playing')
 }
 
 function resume(msg) {
   queue = queueMap.get(msg.guild.id)
-  if (!queue) return msg.channel.send('No songs in the queue')
-  queue.dispatcher.resume()
+  if (queue && queue.dispatcher) return queue.dispatcher.resume()
+  else return msg.channel.send('No song playing')
 }
 
 async function add(args, msg) {
@@ -129,17 +128,12 @@ async function add(args, msg) {
   queue.textChannel.send(`added ${song.title} to the queue`)
 }
 
-function skip(msg) {
-  // check if users are in a voice channel
-  if (!msg.member.voice.channelID)
-    return msg.channel.send(
-      'You must be in a voice channel to use music bot commands'
-    )
-  // check if there are songs in the queue
-  const queue = queueMap.get(msg.member.guild.id)
+function skip(msg, guildId = null) {
+  const guildId = guildId || msg.guild.id
+  const queue = queueMap.get(guildId)
   if (!queue) return msg.channel.send('no songs in the queue')
   // end current song
-  msg.channel.send(`Skipping ${queue.songs[0].title}`)
+  queue.textChannel.send(`Skipping ${queue.songs[0].title}`)
   queue.connection.dispatcher.end()
 }
 
@@ -153,7 +147,7 @@ function clear(msg) {
 
 function queueCommand(msg) {
   const queue = queueMap.get(msg.guild.id)
-  console.log(queue.songs)
+  if (!queue) return msg.channel.send('There are no songs in the queue')
   return queue.songs.length > 0
     ? msg.channel.send(
         'songs: \n' +
