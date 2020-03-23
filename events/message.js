@@ -2,6 +2,7 @@
 const roll = require('../commands/roll')
 const localPrefix = require('../commands/prefix')
 const dictionary = require('../commands/dictionary')
+const accessibilityWF = require('../commands/accessibility')
 const {
   join,
   leave,
@@ -49,13 +50,11 @@ module.exports = (client, msg) => {
 
       // roll dice in D&D fashion
       case 'roll':
-        roll(args, msg)
-        break
+        return roll(args, msg)
 
       // Urban dictionary word lookup
       case 'dict':
-        dictionary(args.join(' '), msg)
-        break
+        return dictionary(args.join(' '), msg)
 
       // Rogue wave command
       case 'rogue-wave':
@@ -85,6 +84,8 @@ module.exports = (client, msg) => {
         return resume(msg)
       case 'queue':
         return queueCommand(msg)
+      case 'a11y':
+        return accessibilityWF(args, msg)
       default:
         msg.channel.send(
           'Command not recognized, refer to +help for a list of commands'
