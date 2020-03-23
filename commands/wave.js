@@ -8,6 +8,9 @@ const rogueWave = (args, msg) => {
       ? callTracking[msg.author.id].called + 1
       : 1,
     username: msg.author.username,
+    summoned: callTracking[msg.author.id]
+      ? callTracking[msg.author.id].summoned
+      : 0,
   }
 
   const calm = new Discord.MessageEmbed()
@@ -31,10 +34,13 @@ const rogueWave = (args, msg) => {
     )
 
   const chance = Math.floor(Math.random() * Math.floor(5)) + 1
+  //rogue wave appears
   if (chance === 1 || args[0] === '~') {
     msg.channel.send(notCalm)
     callTracking[msg.author.id].summoned += 1
+    console.log(callTracking[msg.author.id].summoned)
     callTracking[msg.author.id].called = 0
+    //calm ocean
   } else {
     msg.channel.send(calm)
   }
@@ -55,8 +61,6 @@ const rwLeaderboards = (args, msg) => {
       .map((user, idx) => {
         return `${idx + 1}: ${callTracking[user].username} - ${
           callTracking[user].summoned
-            ? callTracking[user].summoned + 1
-            : (callTracking[user].summoned = 1)
         }`
       })
   )
