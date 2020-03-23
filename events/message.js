@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 const roll = require('../commands/roll')
 const localPrefix = require('../commands/prefix')
 const dictionary = require('../commands/dictionary')
@@ -14,6 +15,8 @@ const {
   queueCommand,
 } = require('../commands/music')
 let customPrefix = '+'
+
+const { rogueWave, rwLeaderboards } = require('../commands/wave')
 
 module.exports = (client, msg) => {
   // This is the response for any message spot in this function. We can split functionality by creating
@@ -50,6 +53,12 @@ module.exports = (client, msg) => {
       // Urban dictionary word lookup
       case 'dict':
         return dictionary(args.join(' '), msg)
+
+      // Rogue wave command
+      case 'rogue-wave':
+        return rogueWave(args, msg)
+      case 'rw-leaderboard':
+        return rwLeaderboards(args, msg)
 
       // Music player commands
       case 'join':
