@@ -2,67 +2,54 @@ const Discord = require('discord.js')
 const callTracking = {}
 
 const rogueWave = (args, msg) => {
-  callTracking[msg.author.id] = {
-    called: callTracking[msg.author.id]
-      ? callTracking[msg.author.id].called + 1
-      : 1,
-    username: msg.author.username,
-    summoned: callTracking[msg.author.id]
-      ? callTracking[msg.author.id].summoned
-      : 0,
+  let callTracker = callTracking[msg.author.id]
+
+  if (!callTracker) {
+    callTracking[msg.author.id] = {
+      called: 0,
+      username: msg.author.username,
+      summoned: 0,
+    }
+    callTracker = callTracking[msg.author.id]
   }
 
-  const calm = new Discord.MessageEmbed()
-    .setTitle(
-      `${msg.author.username} has attempted to summon the almighty rogue wave ${
-        callTracking[msg.author.id].called
-      } times!`
-    )
-    .setImage('https://i.ytimg.com/vi/Cf-JYWyvUOk/maxresdefault.jpg')
+  const embed = new Discord.MessageEmbed()
 
-  const notCalm = new Discord.MessageEmbed()
-    .setImage(
-      'https://todayinhistorydotblog.files.wordpress.com/2018/01/rogue-wave-final.jpg'
-    )
-    .setTitle(
-      `Great, ${
-        msg.author.username
-      } has doomed us all this time, and it only took them ${
-        callTracking[msg.author.id].called
-      } times! to do it. I hope you're happy.`
-    )
+  // true or false value
+  const summon = Math.ceil(5 * Math.random()) === 5
 
-  const chance = Math.floor(Math.random() * Math.floor(5)) + 1
-  //rogue wave appears
-  if (chance === 1 || args[0] === '~') {
-    msg.channel.send(notCalm)
-    callTracking[msg.author.id].summoned += 1
-    console.log(callTracking[msg.author.id].summoned)
-    callTracking[msg.author.id].called = 0
-    //calm ocean
+  if (args[0] === '~' || summon) {
+    ++callTracker.summoned
+    embed
+      .setImage(
+        'https://todayinhistorydotblog.files.wordpress.com/2018/01/rogue-wave-final.jpg'
+      )
+      .setTitle(
+        `Great, ${
+          msg.author.username
+        } has doomed us all this time, and it only took them ${callTracker.called +
+          1} times! to do it. I hope you're happy.`
+      )
+    callTracker.called = 0
   } else {
-    msg.channel.send(calm)
+    ++callTracker.called
+    embed
+      .setTitle(
+        `${msg.author.username} has attempted to summon the almighty rogue wave ${callTracker.called} times!`
+      )
+      .setImage('https://i.ytimg.com/vi/Cf-JYWyvUOk/maxresdefault.jpg')
   }
+  msg.channel.send(embed)
 }
 
 const rwLeaderboards = (args, msg) => {
-  msg.channel.send(
-    Object.keys(callTracking)
-      .sort((a, b) => {
-        if (a.called > b.called) {
-          return 1
-        }
-        if (a.value < b.value) {
-          return -1
-        }
-        return 0
-      })
-      .map((user, idx) => {
-        return `${idx + 1}: ${callTracking[user].username} - ${
-          callTracking[user].summoned
-        }`
-      })
-  )
+  const leaderboard = Object.keys(callTracking)
+    .sort((a, b) => a.called > b.called)
+    .map(
+      (u, i) =>
+        `${i + 1}: ${callTracking[u].username} - ${callTracking[u].summoned}`
+    )
+  msg.channel.send(leaderboard)
 }
 
 module.exports = {
