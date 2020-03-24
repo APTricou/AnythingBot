@@ -1,4 +1,6 @@
 /* eslint-disable complexity */
+
+//import commands
 const roll = require('../commands/roll')
 const localPrefix = require('../commands/prefix')
 const dictionary = require('../commands/dictionary')
@@ -14,15 +16,14 @@ const {
   resume,
   queueCommand,
 } = require('../commands/music')
-let customPrefix = '+'
-
 const { rogueWave, rwLeaderboards } = require('../commands/wave')
-
 const { reddit } = require('../commands/reddit')
 
+// custom prefix
+let customPrefix = '+'
+
 module.exports = (client, msg) => {
-  // This is the response for any message spot in this function. We can split functionality by creating
-  // sub files with sub functions.
+  // This is the response for any message spot in this function.
   if (msg.author.bot) return
   if (
     msg.content.startsWith('@AnythingBot help') ||
@@ -41,7 +42,6 @@ module.exports = (client, msg) => {
       .split(' ')[0]
       .slice(msg.content.startsWith(customPrefix) ? customPrefix.length : 1)
     const args = msg.content.split(' ').slice(1)
-    console.log(args)
     switch (command) {
       // prefix change tool
       case 'prefix':
@@ -62,6 +62,7 @@ module.exports = (client, msg) => {
       case 'rw-leaderboard':
         return rwLeaderboards(args, msg)
 
+      // reddit command
       case 'reddit':
         return reddit(args, msg)
 
