@@ -1,5 +1,5 @@
-const callTracking = {}
 const Discord = require('discord.js')
+const callTracking = {}
 
 const rogueWave = (args, msg) => {
   let callTracker = callTracking[msg.author.id]

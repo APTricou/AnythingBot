@@ -18,6 +18,8 @@ let customPrefix = '+'
 
 const { rogueWave, rwLeaderboards } = require('../commands/wave')
 
+const { reddit } = require('../commands/reddit')
+
 module.exports = (client, msg) => {
   // This is the response for any message spot in this function. We can split functionality by creating
   // sub files with sub functions.
@@ -59,6 +61,9 @@ module.exports = (client, msg) => {
         return rogueWave(args, msg)
       case 'rw-leaderboard':
         return rwLeaderboards(args, msg)
+
+      case 'reddit':
+        return reddit(args, msg)
 
       // Music player commands
       case 'join':
