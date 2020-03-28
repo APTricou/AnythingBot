@@ -18,6 +18,7 @@ const {
 } = require('../commands/music')
 const { rogueWave, rwLeaderboards } = require('../commands/wave')
 const { reddit } = require('../commands/reddit')
+const dog = require('../commands/dog')
 
 // custom prefix
 let customPrefix = '+'
@@ -65,6 +66,10 @@ module.exports = (client, msg) => {
       // reddit command
       case 'reddit':
         return reddit(args, msg)
+
+      // doggo command
+      case 'dog':
+        return dog(args, msg)
 
       // Music player commands
       case 'join':
