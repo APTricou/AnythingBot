@@ -94,7 +94,7 @@ function playSong(guildId, song) {
     ytdl(song.url, { filter: 'audioonly' })
   )
 
-  dispatcher.on('end', queue => {
+  dispatcher.on('finish', queue => {
     queue.songs.shift()
     playSong(guildId, queue.songs[0])
   })

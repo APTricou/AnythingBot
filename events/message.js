@@ -18,6 +18,8 @@ const {
 } = require('../commands/music')
 const { rogueWave, rwLeaderboards } = require('../commands/wave')
 const { reddit } = require('../commands/reddit')
+const dog = require('../commands/dog')
+const imageStorage = require('../commands/image')
 
 // custom prefix
 let customPrefix = '+'
@@ -66,6 +68,10 @@ module.exports = (client, msg) => {
       case 'reddit':
         return reddit(args, msg)
 
+      // doggo command
+      case 'dog':
+        return dog(args, msg)
+
       // Music player commands
       case 'join':
         return join(args, msg)
@@ -87,6 +93,8 @@ module.exports = (client, msg) => {
         return queueCommand(msg)
       case 'a11y':
         return accessibilityWF(args, msg)
+      case 'img':
+        return imageStorage(args, msg)
       default:
         msg.channel.send(
           'Command not recognized, refer to +help for a list of commands'
