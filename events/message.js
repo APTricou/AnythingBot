@@ -19,6 +19,7 @@ const {
 const { rogueWave, rwLeaderboards } = require('../commands/wave')
 const { reddit } = require('../commands/reddit')
 const dog = require('../commands/dog')
+const imageStorage = require('../commands/image')
 
 // custom prefix
 let customPrefix = '+'
@@ -92,6 +93,8 @@ module.exports = (client, msg) => {
         return queueCommand(msg)
       case 'a11y':
         return accessibilityWF(args, msg)
+      case 'img':
+        return imageStorage(args, msg)
       default:
         msg.channel.send(
           'Command not recognized, refer to +help for a list of commands'
